@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "saniraq-kz"
+version = "0.1.0"
+description = ""
+authors = ["yersmad <yersmad@gmail.com>"]
+readme = "README.md"
+packages = [{include = "saniraq"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+fastapi = "^0.100.0"
+alembic = "^1.11.1"
+uvicorn = "^0.23.1"
+sqlalchemy = "^2.0.19"
+python-jose = "^3.3.0"
+python-multipart = "^0.0.6"
+attrs = "^23.1.0"
+pydantic = "^2.0.3"
+requests = "^2.31.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
