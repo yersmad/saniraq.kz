@@ -1,6 +1,6 @@
 from attrs import define
 from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Float
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, relationship
 
 from .database import Base
 
