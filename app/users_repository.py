@@ -1,6 +1,6 @@
 from attrs import define
 from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, relationship
 
 from .database import Base
 
@@ -12,8 +12,10 @@ class User(Base):
     username = Column(String, unique=True)
     phone = Column(Integer)
     password = Column(String)
-    name: Column(String)
+    full_name: Column(String)
     city: Column(String)
+
+    ads = relationship("Ad", back_populates="owner")
 
 
 @define
@@ -21,7 +23,7 @@ class UserCreate:
     username: str
     phone: str
     password: str
-    name: str
+    full_name: str
     city: str
 
 
@@ -43,7 +45,7 @@ class UsersRepository:
             username=user.username,
             phone=user.phone,
             password=user.password,
-            name=user.name,
+            full_name=user.full_name,
             city=user.city
         )
         db.add(db_user)

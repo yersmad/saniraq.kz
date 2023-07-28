@@ -20,14 +20,14 @@ class UserCreateRequest(BaseModel):
     username: str
     phone: str
     password: str
-    name: str
+    full_name: str
     city: str
 
 class UserProfileResponse(BaseModel):
     id: int
     username: str
     phone: str
-    name: str
+    full_name: str
     city: str
 
 
@@ -64,7 +64,7 @@ def post_signup(input: UserCreateRequest, db: Session = Depends(get_db)):
         username=input.username,
         phone=input.phone,
         password=input.password,
-        name=input.name,
+        full_name=input.full_name,
         city=input.city
     ))
 
