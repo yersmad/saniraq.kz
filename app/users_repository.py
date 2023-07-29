@@ -10,10 +10,10 @@ class User(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, unique=True)
-    phone = Column(Integer)
+    phone = Column(String)
     password = Column(String)
-    full_name: Column(String)
-    city: Column(String)
+    name = Column(String)
+    city = Column(String)
 
     ads = relationship("Ad", back_populates="owner")
 
@@ -23,7 +23,7 @@ class UserCreate:
     username: str
     phone: str
     password: str
-    full_name: str
+    name: str
     city: str
 
 
@@ -42,10 +42,10 @@ class UsersRepository:
 
     def create_user(self, db: Session, user: UserCreate) -> User:
         db_user = User(
-            username=user.username,
+            email=user.email,
             phone=user.phone,
             password=user.password,
-            full_name=user.full_name,
+            name=user.name,
             city=user.city
         )
         db.add(db_user)
