@@ -15,7 +15,7 @@ class Ad(Base):
     area = Column(Float)
     rooms_count = Column(Integer)
     description = Column(String)
-    # user_id = Column(Integer, ForeignKey("users.id"))
+    # author_id = Column(Integer, ForeignKey("users.id"))
 
     # owner = relationship("User", back_populates="ads")
 

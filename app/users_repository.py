@@ -15,7 +15,7 @@ class User(Base):
     name = Column(String)
     city = Column(String)
 
-    ads = relationship("Ad", back_populates="owner")
+    # ads = relationship("Ad", back_populates="owner")
 
 
 @define
@@ -42,7 +42,7 @@ class UsersRepository:
 
     def create_user(self, db: Session, user: UserCreate) -> User:
         db_user = User(
-            email=user.email,
+            username=user.username,
             phone=user.phone,
             password=user.password,
             name=user.name,

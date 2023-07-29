@@ -1,7 +1,8 @@
 from fastapi import FastAPI, Response, Depends, HTTPException, Form
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, ORJSONResponse
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
+from jose import jwt
 
 from .ads_repository import Ad, AdsRepository, AdCreate
 from .users_repository import User, UsersRepository, UserCreate
@@ -20,7 +21,7 @@ class UserCreateRequest(BaseModel):
     username: str
     phone: str
     password: str
-    full_name: str
+    name: str
     city: str
 
 
@@ -28,7 +29,7 @@ class UserProfileResponse(BaseModel):
     id: int
     username: str
     phone: str
-    full_name: str
+    name: str
     city: str
 
 
@@ -76,7 +77,7 @@ def signup(input: UserCreateRequest, db: Session = Depends(get_db)):
         username=input.username,
         phone=input.phone,
         password=input.password,
-        full_name=input.full_name,
+        name=input.name,
         city=input.city
     ))
 
@@ -85,7 +86,7 @@ def signup(input: UserCreateRequest, db: Session = Depends(get_db)):
 
 @app.post("/auth/users/login")
 def login(db: Session = Depends(get_db), login: str=Form(), password: str=Form()):
-    user = users_repository.get_user_by_username(username=login)
+    user = users_repository.get_user_by_username(db, username=login)
     if user is None:
         return Response(
             content=b"User not found\n",
@@ -99,7 +100,6 @@ def login(db: Session = Depends(get_db), login: str=Form(), password: str=Form()
             media_type="text/plain",
             status_code=401
         )
-
     response = Response(status_code=200)
     token = encode_jwt(user_id=user.id)
     response.set_cookie("token", token)
