@@ -1,21 +1,19 @@
 from attrs import define
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
-from sqlalchemy.orm import Session, relationship
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Double
+from sqlalchemy.orm import Session
 
 from .database import Base
-
+from .schemas import UserProfileEdit
 
 class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, unique=True)
-    phone = Column(String)
+    phone = Column(String, unique=True)
     password = Column(String)
     name = Column(String)
     city = Column(String)
-
-    # ads = relationship("Ad", back_populates="owner")
 
 
 @define
@@ -28,7 +26,7 @@ class UserCreate:
 
 
 class UsersRepository:
-    def get_user(self, db: Session, user_id: int) -> User | None:
+    def get_user_by_id(self, db: Session, user_id: int) -> User | None:
         return db.query(User).filter(User.id == user_id).first()
 
     def get_user_by_username(self, db: Session, username: str) -> User | None:
@@ -52,3 +50,12 @@ class UsersRepository:
         db.commit()
         db.refresh(db_user)
         return db_user
+
+    def update_user(self, db: Session, prev_user: User, new_user: UserProfileEdit) -> User:
+        db_user = db.query(User).filter(User.id == prev_user.id).update({
+            User.phone: new_user.phone,
+            User.name: new_user.name,
+            User.city: new_user.city
+        })
+        db.flush()
+        db.commit()
