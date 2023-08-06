@@ -1,9 +1,10 @@
-from fastapi import FastAPI, Response, Depends, HTTPException, Form, Cookie
+from fastapi import FastAPI, Response, Depends, HTTPException, Form, Cookie, Request
 from fastapi.responses import RedirectResponse, ORJSONResponse
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from jose import jwt
 from datetime import datetime
+from typing import Optional
 
 from .utils.ads_repository import Ad, AdsRepository, AdCreate
 from .utils.users_repository import User, UsersRepository, UserCreate
@@ -184,10 +185,15 @@ def edit_ad(
     db: Session=Depends(get_db),
     token: str=Depends(oauth2_scheme)
 ):
+    decode_username = decode_jwt(token=token)
     db_ad = ads_repository.get_ad_by_id(db=db, ad_id=id)
+    current_user = users_repository.get_user_by_username(db=db, username=decode_username)
 
     if not db_ad:
         raise HTTPException(status_code=404, detail="Advertisement not found")
+
+    if current_user.id != db_ad.owner_id:
+        raise HTTPException(status_code=403, detail="Has no rights")
 
     edited_ad = ads_repository.update_ad(db=db, ad_id=id, new_data=input)
 
@@ -200,10 +206,16 @@ def delete_ad(
     db: Session=Depends(get_db),
     token: str=Depends(oauth2_scheme)
 ):
+    decode_username = decode_jwt(token=token)
     db_ad = ads_repository.get_ad_by_id(db=db, ad_id=id)
+    current_user = users_repository.get_user_by_username(db=db, username=decode_username)
+
 
     if not db_ad:
         raise HTTPException(status_code=404, detail="Advertisement not found")
+
+    if current_user.id != db_ad.owner_id:
+        raise HTTPException(status_code=403, detail="Has no rights")
 
     deleted_ad = ads_repository.delete_ad_by_id(db=db, ad_id=id)
 
@@ -261,14 +273,19 @@ def edit_comment(
     db: Session=Depends(get_db),
     token: str=Depends(oauth2_scheme)
 ):
+    decode_username = decode_jwt(token=token)
     db_ad = ads_repository.get_ad_by_id(db=db, ad_id=id)
     db_comment = comments_repository.get_comment_by_id(db=db, comment_id=comment_id)
+    current_user = users_repository.get_user_by_username(db=db, username=decode_username)
 
     if not db_ad:
         raise HTTPException(status_code=404, detail="Advertisement not found")
 
     if not db_comment:
         raise HTTPException(status_code=404, detail="Comment not found")
+
+    if current_user.id != db_comment.owner_id:
+        raise HTTPException(status_code=403, detail="Has no rights")
 
     edited_comment = comments_repository.update_comment(db=db, comment_id=comment_id, new_data=input)
 
@@ -282,8 +299,10 @@ def delete_comment(
     db: Session=Depends(get_db),
     token: str=Depends(oauth2_scheme)
 ):
+    decode_username = decode_jwt(token=token)
     db_ad = ads_repository.get_ad_by_id(db=db, ad_id=id)
     db_comment = comments_repository.get_comment_by_id(db=db, comment_id=comment_id)
+    current_user = users_repository.get_user_by_username(db=db, username=decode_username)
 
     if not db_ad:
         raise HTTPException(status_code=404, detail="Advertisement not found")
@@ -291,6 +310,56 @@ def delete_comment(
     if not db_comment:
         raise HTTPException(status_code=404, detail="Comment not found")
 
-    delete_comment = comments_repository.delete_comment_by_id(db=db, comment_id=comment_id)
+    if current_user.id == db_comment.owner_id or current_user.id == db_ad.owner_id:
+        delete_comment = comments_repository.delete_comment_by_id(db=db, comment_id=comment_id)
+        return Response(status_code=200)
+
+    raise HTTPException(status_code=403, detail="Has no rights")
+
+
+@app.post("/auth/users/favorites/shanyraks/{id}")
+def add_to_favorite(
+    id: int,
+    db: Session=Depends(get_db),
+    token: str=Depends(oauth2_scheme)
+):
+    favorites = ads_repository.add_to_favorite_list(db=db, ad_id=id)
 
     return Response(status_code=200)
+
+
+@app.get("/auth/users/favorites/shanyraks")
+def get_favorites(
+    db: Session=Depends(get_db),
+    token: str=Depends(oauth2_scheme)
+):
+    return {"shanyraks": ads_repository.get_all_favorites()}
+
+
+@app.delete("/auth/users/favorites/shanyraks/{id}")
+def delete_from_favorites(
+    id: int,
+    db: Session=Depends(get_db),
+    token: str=Depends(oauth2_scheme)
+):
+    favorites = ads_repository.delete_favorite_ad_by_id(ad_id=id)
+
+    return Response(status_code=200)
+
+
+@app.get("/shanyraks")
+def search(
+    limit: int=10,
+    offset: int=0,
+    type: Optional[str] = None,
+    rooms_count: Optional[int] = None,
+    price_from: Optional[int] = None,
+    price_until: Optional[int] = None,
+    db: Session=Depends(get_db)
+):
+    objects = ads_repository.get_ads(db=db, skip=offset, limit=limit, type=type, rooms_count = rooms_count, price_from = price_from, price_until = price_until)
+
+    return {
+        "total": len(objects),
+        "objects": objects
+    }

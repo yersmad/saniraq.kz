@@ -40,7 +40,6 @@ class AdResponse(BaseModel):
     address: str
     area: float
     rooms_count: int
-    description: str
 
 
 class AdEdit(BaseModel):
