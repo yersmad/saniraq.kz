@@ -1,8 +1,6 @@
 # saniraq.kz
 # MVP объявлений
 
-!https://github.com/nfactorial-incubator/2023-backend/raw/main/LECTURE-1/SPRINT-1/image.png
-
 Продукт "Şañıraq.kz" - перспективный маркетплейс жилых помещений Казахстана.
 
 На данном спринте мы начнем разрабатывать наш первый MVP (Minimum Valuable Product) данного сервиса.
