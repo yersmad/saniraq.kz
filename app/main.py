@@ -3,6 +3,7 @@ from fastapi.responses import RedirectResponse, ORJSONResponse
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from jose import jwt
+from datetime import datetime
 
 from .utils.ads_repository import Ad, AdsRepository, AdCreate
 from .utils.users_repository import User, UsersRepository, UserCreate
@@ -225,6 +226,8 @@ def create_comment(
 
     created_comment = comments_repository.create_comment(db=db, comment=CommentCreate(
         content=input.content,
+        created_at=str(datetime.now()),
+        edited=False,
         owner_id=db_user.id,
         ad_id=id
     ))
@@ -249,3 +252,45 @@ def show_comments(
 
     return {"comments": db_comments}
     
+
+@app.patch("/shanyraks/{id}/comments/{comment_id}")
+def edit_comment(
+    id: int,
+    comment_id:int,
+    input: CommentEdit,
+    db: Session=Depends(get_db),
+    token: str=Depends(oauth2_scheme)
+):
+    db_ad = ads_repository.get_ad_by_id(db=db, ad_id=id)
+    db_comment = comments_repository.get_comment_by_id(db=db, comment_id=comment_id)
+
+    if not db_ad:
+        raise HTTPException(status_code=404, detail="Advertisement not found")
+
+    if not db_comment:
+        raise HTTPException(status_code=404, detail="Comment not found")
+
+    edited_comment = comments_repository.update_comment(db=db, comment_id=comment_id, new_data=input)
+
+    return Response(status_code=200)
+
+
+@app.delete("/shanyraks/{id}/comments/{comment_id}")
+def delete_comment(
+    id: int,
+    comment_id: int,
+    db: Session=Depends(get_db),
+    token: str=Depends(oauth2_scheme)
+):
+    db_ad = ads_repository.get_ad_by_id(db=db, ad_id=id)
+    db_comment = comments_repository.get_comment_by_id(db=db, comment_id=comment_id)
+
+    if not db_ad:
+        raise HTTPException(status_code=404, detail="Advertisement not found")
+
+    if not db_comment:
+        raise HTTPException(status_code=404, detail="Comment not found")
+
+    delete_comment = comments_repository.delete_comment_by_id(db=db, comment_id=comment_id)
+
+    return Response(status_code=200)

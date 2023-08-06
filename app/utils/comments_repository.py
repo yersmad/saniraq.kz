@@ -1,5 +1,5 @@
 from attrs import define
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Double
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Double, DateTime
 from sqlalchemy.orm import Session
 
 from .database import Base
@@ -11,6 +11,8 @@ class Comment(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     content = Column(String)
+    created_at = Column(DateTime)
+    edited = Column(Boolean, default=False)
     owner_id = Column(Integer, ForeignKey("users.id"))
     ad_id = Column(Integer, ForeignKey("advertisements.id"))
 
@@ -18,6 +20,8 @@ class Comment(Base):
 @define
 class CommentCreate:
     content: str
+    created_at: int
+    edited: bool
     owner_id: int
     ad_id: int
 
@@ -47,7 +51,7 @@ class CommentsRepository:
         return db_comment
 
     def update_comment(self, db: Session, comment_id: int, new_data: CommentEdit) -> Comment:
-        db_comment = db.query(Comment).filter(Comment.id == comment_id_id).update({Comment.content: new_data.content})
+        db_comment = db.query(Comment).filter(Comment.id == comment_id).update({Comment.content: new_data.content, Comment.edited: True})
         db.flush()
         db.commit()
 
