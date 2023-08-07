@@ -33,7 +33,7 @@ class AdCreate:
 
 class AdsRepository:
     def __init__(self):
-        self.favorites = [{}]
+        self.favorites = []
 
     def get_ad_by_id(self, db: Session, ad_id: int) -> Ad | None:
         return db.query(Ad).filter(Ad.id == ad_id).first()
@@ -95,12 +95,13 @@ class AdsRepository:
 
     def add_to_favorite_list(self, db: Session, ad_id: int):
         db_ad = db.query(Ad).filter(Ad.id == ad_id).first()
-        self.favorites.append({"id": db_ad.id, "address": db_ad.address})
+        ad = {"id": db_ad.id, "address": db_ad.address}
+        self.favorites.append(ad)
     
     def get_all_favorites(self):
         return self.favorites
 
     def delete_favorite_ad_by_id(self, ad_id: int):
-        for i, shanyrak in enumerate(self.favorites):
-            if shanyrak["id"] == id:
+        for i, ad in enumerate(self.favorites):
+            if ad["id"] == ad_id:
                 del self.favorites[i]
